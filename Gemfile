@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
-ruby '2.4.1'
+
 gem 'eventmachine', '~>1.2.5'
 gem "sinatra"
 gem "sinatra-contrib"
