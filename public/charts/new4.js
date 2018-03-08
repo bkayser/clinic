@@ -8,12 +8,19 @@ var height = 700 - margin.top - margin.bottom;
 var padding = 20;
 
 // Our data structures
+// oddly, cityHierarchy is an array but only the first element is
+// ever accessed, which has a name of 'app' and a list of children
+// representing countries, which contain cities, which contain pages (nodes)
 var cityHierarchy = [];
 var nodesByCity = {};
 var stream;
 var index = 0;
 
-
+// This seems like it should be called once when the page is loaded, and
+// subsequently from updateTraffic every time a new data file is selected.
+// However from the console output, it is called on every iteration of the animation
+// which means all data structures and svg objects are completely torn down and rebuilt
+// which is why there are no smooth transitions.
 function initTraffic(div, json) {
     console.log("here");
     if (stream == null) {
@@ -51,6 +58,8 @@ function formatData(newData) {
 
     // Reset data structures
     cityHierarchy = [];
+
+    // index of page events by city
     nodesByCity = {};
 
     numRequests = newData.length
@@ -67,8 +76,16 @@ function formatData(newData) {
     // with cities as keys and countries as values
     var allCountries = [];
     var allCities = [];
+
+    // Index of countries by city
     var cityCountryDict = {};
 
+    // Iterating through data  in chunks of 1/30th.
+    // This populates the index of countries and nodes by city, as well as the list of countries and list
+    // of cities.
+
+    // Might be better served here by Using the timestamp of the index to process in chunks according
+    // to elapsed real time.
     for (i = index; i < index + newData.length/30; i++) {
         var city = newData[i][titles["city"]]
         var country = newData[i][titles["country"]]
@@ -99,6 +116,10 @@ function formatData(newData) {
     }
 
     // Add the countries to the hierarchy
+    // This builds a hierarchy for each country consisting of
+    // the name and list of cities (children)
+    //    the cities (children) consist each of a name and the
+    //
     for (co = 0; co < allCountries.length; co++) {
         currCountry = allCountries[co]
         var newDict = {};
@@ -115,7 +136,9 @@ function formatData(newData) {
                 newDict2["name"] = city;
                 newDict2["children"] = [];
 
-                // Add individual data points to the hierarchy 
+                // Add individual data points to the hierarchy
+                // This adds the nodes from a given city to the
+                // city structure itself as a list of children
                 addDataToHierarchy(newDict2)
                 innerLevel.push(newDict2);
             }
@@ -156,6 +179,13 @@ function drawCircles(div) {
         nodes = pack(root).descendants(),
         view;
 
+    // Whe should start each time iteration here.
+    // 1) Update the set of nodes
+    // 2) Set the data set on circles selection
+    // 3) Keep the enter section
+    // 4) Add an exit section with .remove()
+    //
+    // It's unclear to me how the circles get
     var circle = g.selectAll("circle")
         .data(nodes)
         .enter().append("circle")
@@ -206,6 +236,7 @@ function drawCircles(div) {
 
 
 // This is our main function that calls all the helper functions
+// This is called when a new data file is selected
 function updateTraffic(error, json, div, dimensionIndex) {
     if (error) {
         readout(error);
@@ -216,6 +247,9 @@ function updateTraffic(error, json, div, dimensionIndex) {
 
         d3.selectAll("svg").remove();
 
+        // This calls initTraffic repeatedly once a second.  We need to
+        // break this loop and simply update the data structures without rebuilding
+        // all the SVG elements.
         setTimeout(function run() {
             initTraffic(div, json);
             setTimeout(run, 1000);
