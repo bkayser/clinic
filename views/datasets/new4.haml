@@ -31,15 +31,18 @@
 :javascript
   
   $data.dispatch.on("reloadData.traffic", function(switchedFile)  {
-       d3.json("/data/filtered/"+$data.file + "?" +
-        "only=" + $data.only + "&" +
-        "filter=" + $data.filter, function(error, json) {
+       d3.json("/data/filtered/"+$data.file + "?only=" + $data.only + "&filter=" + $data.filter, function(error, json) {
          header = json.shift(); // remove the header row
          dimensionIndex = header.indexOf($data.primary_dim);
+         var div = d3.select("#display");
+         setTimeout(function run() {
+            updateTraffic(div, json);
+            setTimeout(run, 1000);
+        }, 1000);
+
          updateTraffic(error, json, d3.select("#display"), dimensionIndex);
        });
   });
   initTraffic(d3.select("#display"));
 
-  
   $data.dispatch.reloadData();
