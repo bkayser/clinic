@@ -1,11 +1,28 @@
 - content_for(:head) do
   %script{type: 'text/javascript', src: "/charts/new4.js"}
+  %script{src: "https://d3js.org/d3.v4.min.js"}
   %script{src: "https://d3js.org/d3-hierarchy.v1.min.js"}
   %script{src: "http://d3js.org/d3.interpolate-zoom.v0.min.js"}
   :css
-    #logTransformGroup, #densityGroup, #apdexTGroup, #filterGroup, #attrGroup {
+    # logTransformGroup, #densityGroup, #apdexTGroup, #filterGroup, #attrGroup {
       display: none;
     }
+    circle {
+      fill: rgb(31, 119, 180);
+      fill-opacity: .25;
+      stroke: rgb(31, 119, 180);
+      stroke-width: 1px;
+    }
+
+    .leaf circle {
+      fill: #ff7f0e;
+      fill-opacity: 1;
+    }
+    text {
+      font: 10px sans-serif;
+      text-anchor: middle;
+    }
+
 
 
   :javascript
@@ -17,7 +34,7 @@
     $data.yMax = #{@y_max};
     $data.density = 30;
     $data.apdex_t = #{@apdex_t};
-    $data.measure = "frontend";
+    $data.measure = "duration";
     $data.filter = "#{@filter_label}";
     $data.primary_dim = "#{@primary_dim}";
     $data.dimensions = #{@dimensions.to_json};
@@ -36,11 +53,11 @@
          dimensionIndex = header.indexOf($data.primary_dim);
          var div = d3.select("#display");
          setTimeout(function run() {
-            updateTraffic(div, json);
+            updateTraffic(json);
             setTimeout(run, 1000);
         }, 1000);
 
-         updateTraffic(error, json, d3.select("#display"), dimensionIndex);
+         updateTraffic(json);
        });
   });
   initTraffic(d3.select("#display"));
